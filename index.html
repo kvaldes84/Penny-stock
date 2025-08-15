@@ -1,251 +1,641 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penny Stock Clicker</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
         body {
-            font-family: sans-serif;
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f0f2f5;
-            color: #333;
             padding: 20px;
             box-sizing: border-box;
         }
-        h1 {
-            font-size: 1.5em;
-            color: #1a1a1a;
-            margin-bottom: 10px;
-        }
-        #game-info, #buttons {
+
+        .game-container {
+            background-color: #2a2a2a;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            max-width: 400px;
-            margin-top: 10px;
+            gap: 20px;
+            box-sizing: border-box;
         }
-        #stock-price-display {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #007BFF;
-            margin: 10px 0;
-            white-space: nowrap;
-        }
-        .data-panel {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 10px 0;
-            border-bottom: 1px solid #ccc;
-        }
-        .data-panel:last-child {
-            border-bottom: none;
-        }
-        .data-label {
-            font-weight: 600;
-        }
-        #buttons {
-            flex-direction: row;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-        .game-button {
-            padding: 12px 24px;
-            font-size: 1em;
-            font-weight: bold;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 45%;
-        }
-        #buy-button {
-            background-color: #28a745;
-        }
-        #sell-button {
-            background-color: #dc3545;
-        }
-        #buy-button:disabled, #sell-button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-        #message-area {
-            margin-top: 20px;
-            font-size: 1.1em;
+
+        .header {
             text-align: center;
-            min-height: 25px;
+            width: 100%;
         }
-        #start-button {
-            padding: 15px 30px;
-            font-size: 1.2em;
-            background-color: #007BFF;
-            color: white;
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #fff;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .stat-box {
+            background-color: #333;
+            padding: 15px 10px;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        #stock-price-value {
+            transition: color 0.5s ease;
+        }
+
+        .price-up {
+            color: #4CAF50;
+        }
+
+        .price-down {
+            color: #F44336;
+        }
+
+        .news-ticker {
+            width: 100%;
+            background-color: #1f1f1f;
+            padding: 10px;
+            border-radius: 10px;
+            font-style: italic;
+            color: #bbb;
+            text-align: center;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+            min-height: 40px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            background-color: #1f1f1f;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #priceChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .buttons-container, .limit-order-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .action-button {
+            padding: 12px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 700;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .buy-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .sell-button {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-button:disabled {
+            background-color: #555;
+            color: #bbb;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .limit-order-input {
+            width: 100px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #555;
+            background-color: #1f1f1f;
+            color: #fff;
+            text-align: center;
+            margin-right: 5px;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .achievements-container {
+            width: 100%;
+            background-color: #333;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .achievements-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .unlocked .achievement-text {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .achievement-icon {
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        .unlocked .achievement-icon {
+            color: gold;
+        }
+
+        .reset-button {
             margin-top: 20px;
+            background-color: #993333;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+
+        .reset-button:hover {
+            background-color: #b33b3b;
         }
     </style>
 </head>
 <body>
-    <h1>Penny Stock Clicker</h1>
-    <div id="game-container">
-        <div id="game-info">
-            <p>Current Price:</p>
-            <div id="stock-price-display">$0.00</div>
-            <div class="data-panel">
-                <span class="data-label">Cash:</span>
-                <span id="cash-display">$100.00</span>
-            </div>
-            <div class="data-panel">
-                <span class="data-label">Shares:</span>
-                <span id="shares-display">0</span>
-            </div>
-            <div class="data-panel">
-                <span class="data-label">Portfolio Value:</span>
-                <span id="portfolio-display">$100.00</span>
-            </div>
-        </div>
-        <div id="buttons">
-            <button id="buy-button" class="game-button">Buy (100 shares)</button>
-            <button id="sell-button" class="game-button">Sell (All)</button>
-        </div>
-        <div id="message-area"></div>
-        <button id="start-button">Start Game</button>
+
+<div class="game-container">
+    <div class="header">
+        <h1>Penny Stock Clicker</h1>
     </div>
 
-    <script>
-        // Game variables
-        let stockPrice = 1.00;
-        let cash = 100;
-        let shares = 0;
-        let portfolioValue = 0;
-        let gameActive = false;
-        let gameInterval;
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-label">Cash</div>
+            <div id="cash-value" class="stat-value">$1,000.00</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Shares</div>
+            <div id="shares-value" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Stock Price</div>
+            <div id="stock-price-value" class="stat-value">$0.50</div>
+        </div>
+    </div>
 
-        // HTML elements
-        const stockPriceDisplay = document.getElementById('stock-price-display');
-        const cashDisplay = document.getElementById('cash-display');
-        const sharesDisplay = document.getElementById('shares-display');
-        const portfolioDisplay = document.getElementById('portfolio-display');
-        const buyButton = document.getElementById('buy-button');
-        const sellButton = document.getElementById('sell-button');
-        const startButton = document.getElementById('start-button');
-        const messageArea = document.getElementById('message-area');
+    <div class="news-ticker" id="news-ticker">News: Market is stable.</div>
 
-        // Game constants
-        const SHARE_QUANTITY = 100;
-        const WIN_VALUE = 1000;
-        const LOSS_VALUE = 10;
-        const MIN_PRICE = 0.01;
-        const MAX_PRICE = 2.00;
+    <div class="chart-container">
+        <canvas id="priceChart"></canvas>
+    </div>
 
-        function updateDisplay() {
-            stockPriceDisplay.textContent = `$${stockPrice.toFixed(2)}`;
-            cashDisplay.textContent = `$${cash.toFixed(2)}`;
-            sharesDisplay.textContent = shares;
-            
-            // Calculate portfolio value
-            portfolioValue = cash + (shares * stockPrice);
-            portfolioDisplay.textContent = `$${portfolioValue.toFixed(2)}`;
+    <div class="buttons-container">
+        <button id="buy-10-btn" class="action-button buy-button">Buy 10 Shares</button>
+        <button id="buy-100-btn" class="action-button buy-button">Buy 100 Shares</button>
+        <button id="buy-all-btn" class="action-button buy-button">Buy All</button>
+        <button id="sell-10-btn" class="action-button sell-button">Sell 10 Shares</button>
+        <button id="sell-100-btn" class="action-button sell-button">Sell 100 Shares</button>
+        <button id="sell-all-btn" class="action-button sell-button">Sell All</button>
+    </div>
 
-            // Check for win/loss conditions
-            if (portfolioValue >= WIN_VALUE) {
-                endGame(true);
-            } else if (portfolioValue <= LOSS_VALUE) {
-                endGame(false);
-            }
+    <div class="limit-order-container">
+        <input type="number" id="buy-limit-input" class="limit-order-input" placeholder="Buy at...">
+        <button id="set-buy-limit-btn" class="action-button buy-button">Set Buy Limit</button>
+        <input type="number" id="sell-limit-input" class="limit-order-input" placeholder="Sell at...">
+        <button id="set-sell-limit-btn" class="action-button sell-button">Set Sell Limit</button>
+    </div>
+
+    <div class="achievements-container">
+        <div style="font-size: 1.2em; text-align: center; font-weight: bold; margin-bottom: 10px;">Achievements</div>
+        <ul id="achievements-list" class="achievements-list">
+            <!-- Achievements will be dynamically added here -->
+        </ul>
+    </div>
+
+    <button id="reset-button" class="reset-button">Restart Game</button>
+
+</div>
+
+<div id="message-box" class="message-box"></div>
+
+<script>
+    // --- Global Game State ---
+    let cash = 1000;
+    let shares = 0;
+    let stockPrice = 0.50;
+    let lastPrice = stockPrice;
+    let priceHistory = [];
+    const maxHistory = 50;
+    const transactionFee = 0.01; // 1% fee on each transaction
+
+    let marketPhase = 'stable'; // 'stable', 'bullish', 'bearish'
+    let phaseDuration = 0;
+    const phaseChangeInterval = 50; // Ticks before phase may change
+
+    let buyLimitOrder = null;
+    let sellLimitOrder = null;
+
+    // --- DOM Elements ---
+    const cashValueEl = document.getElementById('cash-value');
+    const sharesValueEl = document.getElementById('shares-value');
+    const stockPriceValueEl = document.getElementById('stock-price-value');
+    const newsTickerEl = document.getElementById('news-ticker');
+    const messageBoxEl = document.getElementById('message-box');
+    const priceChartCanvas = document.getElementById('priceChart');
+    const ctx = priceChartCanvas.getContext('2d');
+    const achievementsListEl = document.getElementById('achievements-list');
+
+    // --- Achievements Data ---
+    const achievements = [
+        { id: 'firstProfit', name: 'First Profit', description: 'Make a profit on your first sell.', unlocked: false, check: () => cash > 1000 && shares === 0 },
+        { id: 'thousandShares', name: 'Share Hoarder', description: 'Own 1,000 shares at once.', unlocked: false, check: () => shares >= 1000 },
+        { id: 'firstMil', name: 'First Million', description: 'Reach a total net worth of $1,000,000.', unlocked: false, check: () => (cash + (shares * stockPrice)) >= 1000000 },
+        { id: 'crashSurvivor', name: 'Crash Survivor', description: 'Survive a market crash event.', unlocked: false, check: () => false } // This one is checked in the event logic
+    ];
+
+    // --- Game Functions ---
+
+    /**
+     * Initializes the game state and UI.
+     */
+    function init() {
+        cash = 1000;
+        shares = 0;
+        stockPrice = 0.50;
+        lastPrice = stockPrice;
+        priceHistory = [stockPrice];
+        marketPhase = 'stable';
+        phaseDuration = 0;
+        buyLimitOrder = null;
+        sellLimitOrder = null;
+
+        achievements.forEach(a => a.unlocked = false);
+
+        updateUI();
+        drawChart();
+        renderAchievements();
+        showMessage('Game Started!');
+    }
+
+    /**
+     * Updates the main UI elements with the current game state.
+     */
+    function updateUI() {
+        cashValueEl.textContent = `$${cash.toFixed(2)}`;
+        sharesValueEl.textContent = shares;
+        stockPriceValueEl.textContent = `$${stockPrice.toFixed(2)}`;
+
+        // Change stock price color based on movement
+        if (stockPrice > lastPrice) {
+            stockPriceValueEl.classList.remove('price-down');
+            stockPriceValueEl.classList.add('price-up');
+        } else if (stockPrice < lastPrice) {
+            stockPriceValueEl.classList.remove('price-up');
+            stockPriceValueEl.classList.add('price-down');
+        } else {
+            stockPriceValueEl.classList.remove('price-up', 'price-down');
         }
+        lastPrice = stockPrice;
+    }
 
-        function changeStockPrice() {
-            if (!gameActive) return;
+    /**
+     * Shows a temporary message box to the user.
+     * @param {string} message The message to display.
+     */
+    function showMessage(message) {
+        messageBoxEl.textContent = message;
+        messageBoxEl.style.opacity = 1;
+        setTimeout(() => {
+            messageBoxEl.style.opacity = 0;
+        }, 3000);
+    }
 
-            // Generate a small random change
-            const change = (Math.random() - 0.5) * 0.1; // Changes between -0.05 and +0.05
-            stockPrice += change;
-
-            // Keep price within bounds
-            if (stockPrice > MAX_PRICE) {
-                stockPrice = MAX_PRICE;
-            } else if (stockPrice < MIN_PRICE) {
-                stockPrice = MIN_PRICE;
+    /**
+     * Renders the list of achievements.
+     */
+    function renderAchievements() {
+        achievementsListEl.innerHTML = '';
+        achievements.forEach(ach => {
+            const li = document.createElement('li');
+            li.className = 'achievement-item';
+            if (ach.unlocked) {
+                li.classList.add('unlocked');
             }
+            li.innerHTML = `
+                <span class="achievement-icon">★</span>
+                <span class="achievement-text">${ach.name}: ${ach.description}</span>
+            `;
+            achievementsListEl.appendChild(li);
+        });
+    }
 
-            updateDisplay();
-        }
+    /**
+     * Checks if any achievements have been unlocked.
+     */
+    function checkAchievements() {
+        achievements.forEach(ach => {
+            if (!ach.unlocked && ach.check()) {
+                ach.unlocked = true;
+                showMessage(`Achievement Unlocked: ${ach.name}!`);
+                renderAchievements();
+            }
+        });
+    }
 
-        function buyShares() {
-            const cost = SHARE_QUANTITY * stockPrice;
-            if (cash >= cost) {
-                cash -= cost;
-                shares += SHARE_QUANTITY;
-                messageArea.textContent = `Bought ${SHARE_QUANTITY} shares for $${cost.toFixed(2)}.`;
+    /**
+     * Draws the stock price history chart on the canvas.
+     */
+    function drawChart() {
+        const width = priceChartCanvas.width;
+        const height = priceChartCanvas.height;
+
+        // Scale the canvas to fit the CSS dimensions for a sharp graph
+        const scale = window.devicePixelRatio;
+        priceChartCanvas.width = width * scale;
+        priceChartCanvas.height = height * scale;
+        ctx.scale(scale, scale);
+
+        // Clear the canvas
+        ctx.fillStyle = '#1f1f1f';
+        ctx.fillRect(0, 0, width, height);
+
+        if (priceHistory.length <= 1) return;
+
+        // Find min and max price for scaling the y-axis
+        const minPrice = Math.min(...priceHistory);
+        const maxPrice = Math.max(...priceHistory);
+        const priceRange = maxPrice - minPrice;
+        
+        ctx.strokeStyle = '#4CAF50';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        // Draw the line graph
+        priceHistory.forEach((price, index) => {
+            const x = (index / (priceHistory.length - 1)) * width;
+            const y = height - ((price - minPrice) / priceRange) * height;
+
+            if (index === 0) {
+                ctx.moveTo(x, y);
             } else {
-                messageArea.textContent = 'Not enough cash to buy shares!';
+                ctx.lineTo(x, y);
             }
-            updateDisplay();
-        }
+        });
+        ctx.stroke();
+    }
 
-        function sellShares() {
-            if (shares > 0) {
-                const earnings = shares * stockPrice;
-                cash += earnings;
-                shares = 0;
-                messageArea.textContent = `Sold all shares for $${earnings.toFixed(2)}.`;
-            } else {
-                messageArea.textContent = 'You have no shares to sell!';
+    /**
+     * Simulates a random news event that affects the stock price.
+     */
+    function triggerRandomEvent() {
+        const eventType = Math.random();
+        let message;
+        let changeFactor;
+
+        if (eventType < 0.25) { // Bullish news
+            changeFactor = 1.5 + Math.random(); // 50% to 150% increase
+            message = "BREAKING NEWS: Company announces breakthrough technology!";
+        } else if (eventType < 0.5) { // Bearish news
+            changeFactor = 0.5 + Math.random() * 0.2; // 20% to 50% decrease
+            message = "Urgent: CEO resigns amid controversy.";
+            // Check if player survives a crash
+            const crashSurvivorAch = achievements.find(ach => ach.id === 'crashSurvivor');
+            if (shares > 0 && !crashSurvivorAch.unlocked) {
+                crashSurvivorAch.unlocked = true;
+                showMessage(`Achievement Unlocked: ${crashSurvivorAch.name}!`);
+                renderAchievements();
             }
-            updateDisplay();
+        } else {
+            return; // No major event
         }
 
-        function startGame() {
-            // Reset game state
-            stockPrice = 1.00;
-            cash = 100;
-            shares = 0;
-            gameActive = true;
-            messageArea.textContent = '';
-            
-            // Hide start button and enable game buttons
-            startButton.style.display = 'none';
-            buyButton.disabled = false;
-            sellButton.disabled = false;
+        const oldPrice = stockPrice;
+        stockPrice *= changeFactor;
+        stockPrice = Math.max(0.01, stockPrice); // Ensure price doesn't go below 1 cent
+        
+        newsTickerEl.textContent = message;
+        showMessage(message);
+    }
 
-            updateDisplay();
-
-            // Start the price fluctuation
-            gameInterval = setInterval(changeStockPrice, 200); // Update price every 200ms
+    /**
+     * The main game loop that updates the stock price and checks for events.
+     */
+    function gameLoop() {
+        // Change market phase every so often
+        phaseDuration++;
+        if (phaseDuration > phaseChangeInterval) {
+            marketPhase = ['stable', 'bullish', 'bearish'][Math.floor(Math.random() * 3)];
+            newsTickerEl.textContent = `Market is now ${marketPhase}.`;
+            phaseDuration = 0;
         }
 
-        function endGame(isWin) {
-            gameActive = false;
-            clearInterval(gameInterval);
-            buyButton.disabled = true;
-            sellButton.disabled = true;
+        // Apply price change based on market phase
+        let priceChange = (Math.random() * 0.1) - 0.05; // Base fluctuation
+        if (marketPhase === 'bullish') {
+            priceChange += Math.random() * 0.05; // Upward trend
+        } else if (marketPhase === 'bearish') {
+            priceChange -= Math.random() * 0.05; // Downward trend
+        }
+        
+        stockPrice += priceChange;
+        stockPrice = Math.max(0.01, stockPrice); // Price floor
 
-            let finalMessage = isWin ? 
-                `Congratulations! You reached $${portfolioValue.toFixed(2)} and won the game!` : 
-                `Game Over! Your portfolio value dropped below $${LOSS_VALUE.toFixed(2)}.`;
-            
-            messageArea.textContent = finalMessage;
-            startButton.textContent = 'Play Again';
-            startButton.style.display = 'block';
+        // Randomly trigger a major event
+        if (Math.random() < 0.05) {
+            triggerRandomEvent();
         }
 
-        // Event listeners
-        buyButton.addEventListener('click', buyShares);
-        sellButton.addEventListener('click', sellShares);
-        startButton.addEventListener('click', startGame);
+        // Check for limit orders
+        if (buyLimitOrder && stockPrice <= buyLimitOrder) {
+            buyShares(Math.floor(cash / (stockPrice * (1 + transactionFee))));
+            buyLimitOrder = null;
+            document.getElementById('buy-limit-input').value = '';
+            showMessage('Buy limit order executed!');
+        }
+        if (sellLimitOrder && stockPrice >= sellLimitOrder) {
+            sellShares(shares);
+            sellLimitOrder = null;
+            document.getElementById('sell-limit-input').value = '';
+            showMessage('Sell limit order executed!');
+        }
 
-        // Initial setup
-        buyButton.disabled = true;
-        sellButton.disabled = true;
-        updateDisplay();
-    </script>
+        // Update price history for the chart
+        priceHistory.push(stockPrice);
+        if (priceHistory.length > maxHistory) {
+            priceHistory.shift();
+        }
+
+        updateUI();
+        drawChart();
+        checkAchievements();
+    }
+
+    /**
+     * Buys a specified number of shares.
+     * @param {number} quantity The number of shares to buy.
+     */
+    function buyShares(quantity) {
+        if (quantity <= 0) {
+            showMessage("You must buy at least one share.");
+            return;
+        }
+
+        const cost = quantity * stockPrice;
+        const totalCost = cost * (1 + transactionFee);
+
+        if (cash >= totalCost) {
+            cash -= totalCost;
+            shares += quantity;
+            showMessage(`Bought ${quantity} shares for $${totalCost.toFixed(2)}.`);
+        } else {
+            showMessage("Not enough cash to buy those shares!");
+        }
+        updateUI();
+    }
+
+    /**
+     * Sells a specified number of shares.
+     * @param {number} quantity The number of shares to sell.
+     */
+    function sellShares(quantity) {
+        if (quantity <= 0) {
+            showMessage("You must sell at least one share.");
+            return;
+        }
+
+        if (shares >= quantity) {
+            const revenue = quantity * stockPrice;
+            const totalRevenue = revenue * (1 - transactionFee);
+            cash += totalRevenue;
+            shares -= quantity;
+            showMessage(`Sold ${quantity} shares for $${totalRevenue.toFixed(2)}.`);
+        } else {
+            showMessage("Not enough shares to sell!");
+        }
+        updateUI();
+    }
+
+    // --- Event Listeners ---
+    document.getElementById('buy-10-btn').addEventListener('click', () => buyShares(10));
+    document.getElementById('buy-100-btn').addEventListener('click', () => buyShares(100));
+    document.getElementById('buy-all-btn').addEventListener('click', () => buyShares(Math.floor(cash / (stockPrice * (1 + transactionFee)))));
+    document.getElementById('sell-10-btn').addEventListener('click', () => sellShares(10));
+    document.getElementById('sell-100-btn').addEventListener('click', () => sellShares(100));
+    document.getElementById('sell-all-btn').addEventListener('click', () => sellShares(shares));
+
+    document.getElementById('set-buy-limit-btn').addEventListener('click', () => {
+        const price = parseFloat(document.getElementById('buy-limit-input').value);
+        if (price > 0) {
+            buyLimitOrder = price;
+            showMessage(`Buy limit order set at $${price.toFixed(2)}.`);
+        } else {
+            showMessage("Invalid buy limit price.");
+        }
+    });
+
+    document.getElementById('set-sell-limit-btn').addEventListener('click', () => {
+        const price = parseFloat(document.getElementById('sell-limit-input').value);
+        if (price > 0) {
+            sellLimitOrder = price;
+            showMessage(`Sell limit order set at $${price.toFixed(2)}.`);
+        } else {
+            showMessage("Invalid sell limit price.");
+        }
+    });
+
+    document.getElementById('reset-button').addEventListener('click', init);
+
+    // --- Game Start ---
+    window.onload = function() {
+        init();
+        setInterval(gameLoop, 1000); // Update price every second
+    };
+
+</script>
+
 </body>
 </html>
+
 
