@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Penny Stock Clicker</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 1.5em;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        #game-info, #buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+        #stock-price-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007BFF;
+            margin: 10px 0;
+            white-space: nowrap;
+        }
+        .data-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        .data-panel:last-child {
+            border-bottom: none;
+        }
+        .data-label {
+            font-weight: 600;
+        }
+        #buttons {
+            flex-direction: row;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .game-button {
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 45%;
+        }
+        #buy-button {
+            background-color: #28a745;
+        }
+        #sell-button {
+            background-color: #dc3545;
+        }
+        #buy-button:disabled, #sell-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        #message-area {
+            margin-top: 20px;
+            font-size: 1.1em;
+            text-align: center;
+            min-height: 25px;
+        }
+        #start-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Penny Stock Clicker</h1>
+    <div id="game-container">
+        <div id="game-info">
+            <p>Current Price:</p>
+            <div id="stock-price-display">$0.00</div>
+            <div class="data-panel">
+                <span class="data-label">Cash:</span>
+                <span id="cash-display">$100.00</span>
+            </div>
+            <div class="data-panel">
+                <span class="data-label">Shares:</span>
+                <span id="shares-display">0</span>
+            </div>
+            <div class="data-panel">
+                <span class="data-label">Portfolio Value:</span>
+                <span id="portfolio-display">$100.00</span>
+            </div>
+        </div>
+        <div id="buttons">
+            <button id="buy-button" class="game-button">Buy (100 shares)</button>
+            <button id="sell-button" class="game-button">Sell (All)</button>
+        </div>
+        <div id="message-area"></div>
+        <button id="start-button">Start Game</button>
+    </div>
+
+    <script>
+        // Game variables
+        let stockPrice = 1.00;
+        let cash = 100;
+        let shares = 0;
+        let portfolioValue = 0;
+        let gameActive = false;
+        let gameInterval;
+
+        // HTML elements
+        const stockPriceDisplay = document.getElementById('stock-price-display');
+        const cashDisplay = document.getElementById('cash-display');
+        const sharesDisplay = document.getElementById('shares-display');
+        const portfolioDisplay = document.getElementById('portfolio-display');
+        const buyButton = document.getElementById('buy-button');
+        const sellButton = document.getElementById('sell-button');
+        const startButton = document.getElementById('start-button');
+        const messageArea = document.getElementById('message-area');
+
+        // Game constants
+        const SHARE_QUANTITY = 100;
+        const WIN_VALUE = 1000;
+        const LOSS_VALUE = 10;
+        const MIN_PRICE = 0.01;
+        const MAX_PRICE = 2.00;
+
+        function updateDisplay() {
+            stockPriceDisplay.textContent = `$${stockPrice.toFixed(2)}`;
+            cashDisplay.textContent = `$${cash.toFixed(2)}`;
+            sharesDisplay.textContent = shares;
+            
+            // Calculate portfolio value
+            portfolioValue = cash + (shares * stockPrice);
+            portfolioDisplay.textContent = `$${portfolioValue.toFixed(2)}`;
+
+            // Check for win/loss conditions
+            if (portfolioValue >= WIN_VALUE) {
+                endGame(true);
+            } else if (portfolioValue <= LOSS_VALUE) {
+                endGame(false);
+            }
+        }
+
+        function changeStockPrice() {
+            if (!gameActive) return;
+
+            // Generate a small random change
+            const change = (Math.random() - 0.5) * 0.1; // Changes between -0.05 and +0.05
+            stockPrice += change;
+
+            // Keep price within bounds
+            if (stockPrice > MAX_PRICE) {
+                stockPrice = MAX_PRICE;
+            } else if (stockPrice < MIN_PRICE) {
+                stockPrice = MIN_PRICE;
+            }
+
+            updateDisplay();
+        }
+
+        function buyShares() {
+            const cost = SHARE_QUANTITY * stockPrice;
+            if (cash >= cost) {
+                cash -= cost;
+                shares += SHARE_QUANTITY;
+                messageArea.textContent = `Bought ${SHARE_QUANTITY} shares for $${cost.toFixed(2)}.`;
+            } else {
+                messageArea.textContent = 'Not enough cash to buy shares!';
+            }
+            updateDisplay();
+        }
+
+        function sellShares() {
+            if (shares > 0) {
+                const earnings = shares * stockPrice;
+                cash += earnings;
+                shares = 0;
+                messageArea.textContent = `Sold all shares for $${earnings.toFixed(2)}.`;
+            } else {
+                messageArea.textContent = 'You have no shares to sell!';
+            }
+            updateDisplay();
+        }
+
+        function startGame() {
+            // Reset game state
+            stockPrice = 1.00;
+            cash = 100;
+            shares = 0;
+            gameActive = true;
+            messageArea.textContent = '';
+            
+            // Hide start button and enable game buttons
+            startButton.style.display = 'none';
+            buyButton.disabled = false;
+            sellButton.disabled = false;
+
+            updateDisplay();
+
+            // Start the price fluctuation
+            gameInterval = setInterval(changeStockPrice, 200); // Update price every 200ms
+        }
+
+        function endGame(isWin) {
+            gameActive = false;
+            clearInterval(gameInterval);
+            buyButton.disabled = true;
+            sellButton.disabled = true;
+
+            let finalMessage = isWin ? 
+                `Congratulations! You reached $${portfolioValue.toFixed(2)} and won the game!` : 
+                `Game Over! Your portfolio value dropped below $${LOSS_VALUE.toFixed(2)}.`;
+            
+            messageArea.textContent = finalMessage;
+            startButton.textContent = 'Play Again';
+            startButton.style.display = 'block';
+        }
+
+        // Event listeners
+        buyButton.addEventListener('click', buyShares);
+        sellButton.addEventListener('click', sellShares);
+        startButton.addEventListener('click', startGame);
+
+        // Initial setup
+        buyButton.disabled = true;
+        sellButton.disabled = true;
+        updateDisplay();
+    </script>
+</body>
+</html>
+
+
